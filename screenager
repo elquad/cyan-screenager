@@ -1,0 +1,97 @@
+#!/usr/bin/python
+import wx
+from os import chdir, system
+
+mydir = "/usr/local/bin/scripts/"
+
+
+TRAY_TOOLTIP = ''
+icon_laptop = 'icons/laptop.png'
+icon_normal = 'icons/normal.png'
+icon_left = 'icons/left.png'
+icon_right = 'icons/right.png'
+icon_inverted = 'icons/inverted.png'
+
+def create_menu_item(menu, label, func):
+    item = wx.MenuItem(menu, -1, label)
+    menu.Bind(wx.EVT_MENU, func, id=item.GetId())
+    menu.AppendItem(item)
+    return item
+
+class TaskBarIcon(wx.TaskBarIcon):
+    def __init__(self, frame):
+        self.frame = frame
+        super(TaskBarIcon, self).__init__()
+        self.set_icon(icon_laptop)
+        self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.on_left_down)
+
+    def action_laptop(self, event):
+        self.set_icon(icon_laptop)
+        system("convertible-mode laptop")
+
+    def action_left(self, event):
+        self.set_icon(icon_left)
+        action = "left"
+        rotate_mode = "rotate-screen" + " " + action
+        system("convertible-mode tablet")
+        system(rotate_mode)
+
+    def action_right(self, event):
+        self.set_icon(icon_right)
+        action = "right"
+        rotate_mode = "rotate-screen" + " " + action
+        system("convertible-mode tablet")
+        system(rotate_mode)
+
+    def action_normal(self, event):
+        self.set_icon(icon_normal)
+        action = "normal"
+        rotate_mode = "rotate-screen" + " " + action
+        system("convertible-mode tablet")
+        system(rotate_mode)
+
+    def action_inverted(self, event):
+        self.set_icon(icon_inverted)
+        action = "inverted"
+        rotate_mode = "rotate-screen" + " " + action
+        system("convertible-mode tablet")
+        system(rotate_mode)
+
+    def CreatePopupMenu(self):
+        menu = wx.Menu()
+        create_menu_item(menu, 'Standard', self.action_normal)
+        create_menu_item(menu, 'Right edge', self.action_left)
+        create_menu_item(menu, 'Left edge', self.action_right)
+        create_menu_item(menu, 'Inverted', self.action_inverted)
+        menu.AppendSeparator()
+        create_menu_item(menu, 'Laptop mode', self.action_laptop)
+        return menu
+
+    def set_icon(self, path):
+        icon = wx.IconFromBitmap(wx.Bitmap(path))
+        self.SetIcon(icon, TRAY_TOOLTIP)
+
+    def on_left_down(self, event):
+        menu = self.CreatePopupMenu()
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def on_exit(self, event):
+        wx.CallAfter(self.Destroy)
+        self.frame.Close()
+
+class App(wx.App):
+    def OnInit(self):
+        frame = wx.Frame(None)
+        self.SetTopWindow(frame)
+        TaskBarIcon(frame)
+        return True
+
+def main():
+    chdir(mydir)
+    app = App(False)
+    app.MainLoop()
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,34 @@
+#!/bin/sh
+
+touchpad="Elan Touchpad"
+keyboard="AT Translated Set 2 keyboard"
+isEnabled="$(xinput --list-props "${touchpad}" | awk '/Device Enabled/{print $NF}')"
+
+if [ -z $1 ]
+then
+    echo Usage: $0 '[laptop|tablet]'
+    exit 0
+fi
+
+if [ $1 = "tablet" ] 
+then
+    xinput disable "${touchpad}"
+    xinput disable "${keyboard}"
+    if [ -z $(pidof at-spi-bus-launcher) ]
+    then
+        nohup /usr/lib/at-spi2-core/at-spi-bus-launcher > /dev/null 2>&1 &
+    fi
+    if [ -z $(pidof onboard) ]
+    then
+        onboard &
+    fi
+elif [ $1 = "laptop" ]
+then
+    xinput enable "${touchpad}"
+    xinput enable "${keyboard}"
+    /usr/local/bin/scripts/rotate-screen normal
+    killall onboard 2>/dev/null
+else
+    echo Usage: $0 '[laptop|tablet]'
+fi
+
